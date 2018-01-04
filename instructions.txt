@@ -1,0 +1,1 @@
+## Enter the following values to Twitter Map Cloud Assignment/credentials.py, before executing:1. Twitter App credentials.2. Aws Elastic Search KeyData should be in format:consumer_key = ''consumer_secret = ''access_token = ''access_secret = ''# Aws elastic searchhost_name = ''

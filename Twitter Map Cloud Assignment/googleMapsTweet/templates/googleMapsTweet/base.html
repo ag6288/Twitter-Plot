@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/html">
+  <head>
+     <!--Styling-->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap-theme.min.css" integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/Sp" crossorigin="anonymous">
+    <script src="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
+    <style>
+
+	   html { height: 80% ; background: darkblue }
+       body { height: 80%; margin: 10px; padding: 10px; background: darkblue}
+       #heading{left: 505px;position: relative; top: 0px; color: darkorange;}
+       #container { width: 100%; height: 100%; top: 150px}
+       #nav { z-index: 100; position: absolute;
+       padding: 5px;
+       position:fixed;
+       top: 0;
+       left:0;
+       width:<fixed px>;
+       height:<fixed px>;  }
+       #map { top: 70px;
+        height: 700px;
+        width: 100%;}
+       h3 {
+        text-align: center;}
+       #ddlSearchWords{color: darkred; position: fixed;  top: 60px;  left: 20px; width:84%;}
+    </style>
+      {% load static %}
+  </head>
+  <body bgcolor="#E6E6FA">
+  <div id="container">
+
+
+    <div id="nav">
+
+    <div id="heading">
+        <h1 color = "">Tweets Map</h1></div>
+
+	    <form id="listform" method="POST">{% csrf_token %}
+        <select name="ddlSearchWords" class="form-control" id="ddlSearchWords">
+            <option value="Food" selected>Food</option>
+            <option value="Trump">Trump</option>
+            <option value="Sports">Sports</option>
+            <option value="Technology">Technology</option>
+            <option value="Elections">Elections</option>
+            <option value="Iphone">Iphone</option>
+            <option value="Science">Science</option>
+            <option value="World">World</option>
+            <option value="Tennis">Tennis</option>
+            <option value="Brand">Brand</option>
+        </select>
+		<br>
+
+		<div style="position:absolute;vertical-align:middle;text-align:center; top: 50px;">
+        <button type="submit"  class="btn btn-primary" style="color: darkred; position: fixed;  top: 60px;  right: 20px; width:190px" onsubmit="initMap()">Press to View</button>
+		</div>
+        </form>
+
+    </div>
+	
+    <div id="map">
+	</div>
+	
+	</div>
+    <script>
+	function openNav() {
+    document.getElementById("mySidenav").style.width = "250px";
+}
+
+function closeNav() {
+    document.getElementById("mySidenav").style.width = "0";
+}
+        function initMap() {
+            var map_center = {lat: 20, lng: -30};
+            var map = new google.maps.Map(document.getElementById('map'), {
+                zoom: 3,
+                center: map_center
+            });
+
+            {#---Ajax---#}
+
+            $('#listform').on('submit', function (event) {
+                event.preventDefault();
+                var selectedword = document.getElementById("ddlSearchWords");
+            searchKeyword = selectedword.options[selectedword.selectedIndex].value;
+            //console.log(searchKeyword);
+                $.ajax({
+                    url: '/post/',
+                    type: 'POST',
+                    data: {Search: searchKeyword, csrfmiddlewaretoken:$('input[name=csrfmiddlewaretoken]').val()},
+                    // on success
+                    success: function (json) {
+                        var map = new google.maps.Map(document.getElementById('map'), {
+                            zoom: 3,
+                            center: map_center
+                        });
+
+                        for(i=0; i<json.length.hits; i++){
+
+                            var myLatlng = new google.maps.LatLng(parseFloat(json.coordinates[i].lat),parseFloat(json.coordinates[i].lng));
+                            var tweet_data = json.coordinates[i].lat;
+                            //console.log(myLatlng);
+                            var contentString = '<div id="content">'+
+                                '<div id="siteNotice">'+
+                                '</div>'+
+                                '<h3 id="firstHeading" class="firstHeading">Tweets</h3>'+
+                                '<div id="bodyContent">'+
+                                '<p></p>'+
+                                '</div>'+
+                                '</div>';
+
+                            var infowindow = new google.maps.InfoWindow({
+                              content: contentString
+                            });
+
+                            var marker = new google.maps.Marker({
+                              position: myLatlng,
+                              map: map,
+                              title: 'Tweets'
+                            });
+                            // text marker for multiple markers
+                            google.maps.event.addListener(marker, 'click', (function(marker) {
+                                       return function() {
+                                           var content = contentString;
+                                           infowindow.setContent(content);
+                                           infowindow.open(map, marker);
+                                       }
+                                     })(marker));
+
+                        }
+
+                    }
+                });
+            });
+
+        }
+    </script>
+    <script async defer
+    src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDWeygUtLrHpnSgdG-fJFvq-7Ja6p85r7w&callback=initMap">
+    </script>
+  </body>
+</html>
